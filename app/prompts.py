@@ -1,7 +1,14 @@
 import re
 
-def llmprompts(description):
-    llmprompt_cr = (
+def llmprompts(description, prompt):
+    intro = False
+    words = ['intro', 'overview', 'describe']
+    for word in words:
+        if word in prompt: 
+            intro = True
+
+    if intro:
+        llmprompt_cr = (
 f"Below is a JSON-LD object describing a dataset: {description}\n\n"
 "What is the title of the dataset and who is author and creator? Mention a few authors if there are present."
 "To which country data belong?"
@@ -24,4 +31,9 @@ f"Below is a JSON-LD object describing a dataset: {description}\n\n"
 "Are there any relationships or correlations between the features?"
 "Give me up to 10 questions on which the content of the dataset can respond base on its description and title"
     ) 
-    return llmprompt_cr
+        return llmprompt_cr
+    else:
+        llmprompt_cr = (
+f"Below is a JSON-LD object describing a dataset: {description}\n\n{prompt}"
+    )
+        return llmprompt_cr
