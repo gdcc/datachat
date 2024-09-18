@@ -12,28 +12,28 @@ def get_doi_from_text(text):
 
     if match:
         doi = match.group(1)  # Extracted DOI
-        #print("Extracted DOI:", doi)
         return doi
     else:
         print("DOI not found.")
 
 def get_json(doi):
-    url = "https://dataverse.harvard.edu/api/datasets/export?exporter=OAI_ORE&persistentId=%s" % doi.replace(':','%3A')
-    url = "https://dataverse.harvard.edu/api/datasets/export?exporter=croissant&persistentId=%s" % doi.replace(':','%3A')
-    if 'dans' in doi:
-        url = "https://portal.devstack.odissei.nl/api/datasets/export?exporter=croissant&persistentId=%s" % doi.replace(':','%3A')
-    if '10.5072' in doi:
-        url = "https://database.sharemusic.se/api/datasets/export?exporter=croissant&persistentId=%s" %  doi.replace(':','%3A')
-    r = requests.get(url)
-    json_ld_data = r.json()
-    fields_to_remove = ['@type', '@context', 'distribution', 'recordSet', 'ore:aggregates', 'schema:hasPart']
-
-    # Remove the specified fields
-    for field in fields_to_remove:
-        json_ld_data.pop(field, None)
-    if 'ore:describes' in json_ld_data:
-        json_ld_data['ore:describes'].pop(field, None) 
-    return json_ld_data
+    if 'FAKEDNS' in os.environ:
+        dns = fakedns(os.environ['FAKEDNS'])        
+        url = dns['*']
+        for doirule in dns:
+            if doirule in doi:
+                url = dns[doirule].replace('%%id%%', doi.replace(':','%3A'))
+        #r = requests.get(url)
+        #json_ld_data = r.json()
+        json_ld_data = datacache(doi)
+        fields_to_remove = ['@type', '@context', 'distribution', 'recordSet', 'ore:aggregates', 'schema:hasPart']
+        # Remove the specified fields
+        for field in fields_to_remove:
+            json_ld_data.pop(field, None)
+        if 'ore:describes' in json_ld_data:
+            json_ld_data['ore:describes'].pop(field, None) 
+        return json_ld_data
+    return
 
 def query_ollama(prompt):
     s = requests.Session()
@@ -63,3 +63,45 @@ The "creator" field describes a person, where:
 """
 
     return description_cr
+
+def fakedns(file_path):
+    rules = {}
+    try:
+        with open(file_path, 'r') as file:
+            # Read file line by line
+            for line in file:
+                # Strip any leading/trailing whitespaces/newlines
+                line = line.strip()
+
+                # Split the line by the delimiter ";"
+                identifier, url_template = line.split(';')
+                rules[identifier] = url_template
+        return rules
+    except FileNotFoundError:
+        print(f"The file {file_path} was not found.")
+        return
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return
+
+def datacache(doi):
+    url = ''
+    if 'FAKEDNS' in os.environ: 
+        dns = fakedns(os.environ['FAKEDNS'])
+        url = dns['*']
+        for doirule in dns:
+            if doirule in doi:
+                url = dns[doirule].replace('%%id%%', doi.replace(':','%3A'))
+
+    cache_file = "%s/%s.json" % (os.environ['DATADIR'], doi.replace('/','_'))
+    if os.path.exists(cache_file):
+        with open(cache_file, 'r') as file:
+            content = json.load(file)
+            return content
+    else:
+        r = requests.get(url)
+        jsonld = r.json()
+        with open(cache_file, 'w') as file:
+            json.dump(jsonld, file, indent=4)
+            return jsonld
+    return

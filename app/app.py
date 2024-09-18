@@ -14,8 +14,8 @@ st.title(os.environ['TITLE'])
 description = ''
 prompt = st.text_input(os.environ['INTRO'], "")
 
-def get_questions(description):
-    return llmprompts(description)
+def get_questions(description, prompt):
+    return llmprompts(description, prompt)
 
 # Button to trigger API call
 if st.button("Get Response"):
@@ -23,7 +23,7 @@ if st.button("Get Response"):
         #response = query_ollama(prompt)
         doi = get_doi_from_text(prompt)
         st.write("Getting dataset %s" % doi)
-        llmprompt = get_questions(form_prompt(doi))
+        llmprompt = get_questions(form_prompt(doi), prompt)
         #st.write(llmprompt)
         response = query_ollama(llmprompt)
         st.write(response)
