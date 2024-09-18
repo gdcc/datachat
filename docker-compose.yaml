@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  streamlit_app:
+    build: .
+    container_name: llmtalk
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./app:/app
+    environment:
+      - STREAMLIT_SERVER_ENABLECORS=false
+      - OLLAMA
+      - MODEL
+      - INTRO
+      - TITLE
+    restart: always
+
