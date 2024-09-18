@@ -8,11 +8,15 @@ services:
       - "8501:8501"
     volumes:
       - ./app:/app
+      - ${CONFIG}:/config
+      - ${DATADIR}:/data
     environment:
       - STREAMLIT_SERVER_ENABLECORS=false
       - OLLAMA
       - MODEL
       - INTRO
       - TITLE
+      - FAKEDNS
+      - DATADIR
     restart: always
 
