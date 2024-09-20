@@ -105,11 +105,14 @@ def datacache(doi):
         except:
             skip = True
 
-        if 'ERROR' in jsonld['status']:
-            #host = "https://dataverse.nl"
-            PID = doi #"doi:10.34894/YH"
-            croissant = Croissant(doi=PID) #, host=host) 
-            jsonld = croissant.get_record()
+        try:
+            if 'ERROR' in jsonld['status']:
+                #host = "https://dataverse.nl"
+                PID = doi #"doi:10.34894/YH"
+                croissant = Croissant(PID) #, host=host) 
+                jsonld = croissant.get_record()
+        except:
+            skip = True
 
         with open(cache_file, 'w') as file:
             json.dump(jsonld, file, indent=4, default=str)
