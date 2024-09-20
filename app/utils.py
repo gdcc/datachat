@@ -2,6 +2,7 @@ import requests
 import re
 import os
 import json
+from pyDataverse.Croissant import Croissant
 
 def get_doi_from_text(text):
     # Regular expression pattern to capture DOI
@@ -23,10 +24,8 @@ def get_json(doi):
         for doirule in dns:
             if doirule in doi:
                 url = dns[doirule].replace('%%id%%', doi.replace(':','%3A'))
-        #r = requests.get(url)
-        #json_ld_data = r.json()
         json_ld_data = datacache(doi)
-        fields_to_remove = ['@type', '@context', 'distribution', 'recordSet', 'ore:aggregates', 'schema:hasPart']
+        fields_to_remove = ['@type', '@context', 'distribution', 'recordSet', 'ore:aggregates', 'schema:hasPart', 'dateCreated']
         # Remove the specified fields
         for field in fields_to_remove:
             json_ld_data.pop(field, None)
@@ -93,15 +92,26 @@ def datacache(doi):
             if doirule in doi:
                 url = dns[doirule].replace('%%id%%', doi.replace(':','%3A'))
 
-    cache_file = "%s/%s.json" % (os.environ['DATADIR'], doi.replace('/','_'))
+    cache_file = "%s/%s.json" % (os.environ['IDATADIR'], doi.replace('/','_'))
     if os.path.exists(cache_file):
         with open(cache_file, 'r') as file:
             content = json.load(file)
             return content
     else:
-        r = requests.get(url)
-        jsonld = r.json()
+        jsonld = { "status":"ERROR" }
+        try:
+            r = requests.get(url)
+            jsonld = r.json()
+        except:
+            skip = True
+
+        if 'ERROR' in jsonld['status']:
+            #host = "https://dataverse.nl"
+            PID = doi #"doi:10.34894/YH"
+            croissant = Croissant(doi=PID) #, host=host) 
+            jsonld = croissant.get_record()
+
         with open(cache_file, 'w') as file:
-            json.dump(jsonld, file, indent=4)
+            json.dump(jsonld, file, indent=4, default=str)
             return jsonld
     return
