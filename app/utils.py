@@ -131,3 +131,30 @@ def sources():
         sources = os.environ['SOURCES']
         return sources.replace('"','').replace('\n','').split(',')
     return
+
+def linked_data_query_constructor(textinput):
+    json_pattern = re.search(r'({.*})', textinput, re.DOTALL)
+
+    if json_pattern:
+        json_string = json_pattern.group(1)
+
+        # Replace single quotes with double quotes to ensure valid JSON
+        json_string = json_string.replace("'", '"')
+        for lineitem in json_string.split('\n'):
+            if lineitem[-1:] == ']':
+                lineitem+=','
+            print("%s -> %s\n" % (lineitem, lineitem[-1:]))
+        try:
+            # Convert JSON string to Python dictionary
+            extracted_query = json.loads(json_string)
+            if 'keywords' in extracted_query:
+                searchquery = ''
+                for keyword in extracted_query['keywords']:
+                    searchquery = "%s AND %s" % (searchquery, keyword)
+                #extracted_query['searchquery'] = searchquery
+            return extracted_query
+        except json.JSONDecodeError as e:
+            print(f"Failed to parse JSON: {e}")
+    else:
+        print("No JSON found in the text.")
+    return

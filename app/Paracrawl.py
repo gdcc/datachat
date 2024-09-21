@@ -4,6 +4,7 @@ import re
 import os
 import async_timeout
 import aiohttp
+import json
 
 # Allow nested event loops in environments like Jupyter Notebooks
 nest_asyncio.apply()
@@ -13,13 +14,15 @@ class Paracrawl():
         self.roots = dataverses
         self.query = query
         self.run()
+        self.results = []
+        self.reader()
         
     async def fetch(self, session, url):
         """Fetch a page's content with a timeout."""
         try:
             with async_timeout.timeout(10):  # Timeout for the request
                 async with session.get(url) as response:
-                    print(f"Fetching {url}")
+                    #print(f"Fetching {url}")
                     return await response.text(), response.status
         except Exception as e:
             print(f"Error fetching {url}: {e}")
@@ -37,6 +40,17 @@ class Paracrawl():
             self.urls.append("%s/api/search?q=%s" % (url, self.query))
         return self.urls
 
+    def reader(self):
+        for url in self.content:
+            print(url)
+            content = self.content[url]
+            #print(content)
+            if 'items' in content['data']:
+                for item in content['data']['items']:
+                    if 'citationHtml' in item:
+                        self.results.append(item['citationHtml'])
+        return
+
     def run(self):
         urls = self.get_urls()
         results = asyncio.run(self.crawl(urls))
@@ -44,5 +58,5 @@ class Paracrawl():
         # Print results
         for idx, (content, status) in enumerate(results):
             if content:
-                self.content[urls[idx]] = content #[:200]
+                self.content[urls[idx]] = json.loads(content) #[:200]
         return len(self.content)
