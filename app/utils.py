@@ -16,6 +16,13 @@ def get_doi_from_text(text):
         return doi
     else:
         print("DOI not found.")
+        # check for handle
+        #hdl:10622/SOS0KC#
+        hdl_pattern = r'(hdl\:\S+)'
+        match = re.search(hdl_pattern, text)
+        if match:
+            return match.group(1)
+    return
 
 def get_json(doi):
     if 'FAKEDNS' in os.environ:
@@ -117,4 +124,10 @@ def datacache(doi):
         with open(cache_file, 'w') as file:
             json.dump(jsonld, file, indent=4, default=str)
             return jsonld
+    return
+
+def sources():
+    if 'SOURCES' in os.environ:
+        sources = os.environ['SOURCES']
+        return sources.replace('"','').replace('\n','').split(',')
     return
