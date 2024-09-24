@@ -18,5 +18,7 @@ services:
       - TITLE
       - FAKEDNS
       - DATADIR
+      - IDATADIR
+      - SOURCES
     restart: always
 
