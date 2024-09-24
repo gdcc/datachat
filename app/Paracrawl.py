@@ -5,9 +5,10 @@ import os
 import async_timeout
 import aiohttp
 import json
-from utils import linked_data_query_constructor
+from utils import linked_data_query_constructor, get_doi_from_text
 from config import config
 from AI import AIMaker
+from GraphQuery import GraphQuery
 
 # Allow nested event loops in environments like Jupyter Notebooks
 nest_asyncio.apply()
@@ -20,7 +21,7 @@ class Paracrawl():
         if directquery:
             self.query = directquery
         else:
-            self.query = self.smartprompt(prompt)['searchquery']
+            self.query = self.smartprompt("<TEXT>%s</TEXT>" % prompt)['searchquery']
         self.run()
         self.results = []
         self.reader()
@@ -45,7 +46,9 @@ class Paracrawl():
     def get_urls(self):
         self.urls = []
         for url in self.roots:
-            self.urls.append("%s/api/search?q=%s" % (url, self.query))
+            self.q = self.query
+            self.q = self.q.replace(' ','%20')
+            self.urls.append("%s/api/search?q=%s" % (url, self.q))
         return self.urls
 
     def reader(self):
@@ -56,7 +59,12 @@ class Paracrawl():
             if 'items' in content['data']:
                 for item in content['data']['items']:
                     if 'citationHtml' in item:
-                        self.results.append(item['citationHtml'])
+                        html =  "<b><a href='/?url=%s'>[ Chat ]</a></b>&nbsp;%s" % ("http://" + get_doi_from_text(item['citationHtml']), item['citationHtml']) 
+                        self.results.append(html)
+                    else:
+                        if 'dataset_citation' in item:
+                            html = "<a href='/?url=%s'>Chat</a>&nbsp;%s" % ("http://%s" % item['dataset_persistent_id'], item['dataset_citation'])
+                            self.results.append(html)
         return
 
     def run(self):
@@ -69,6 +77,45 @@ class Paracrawl():
                 self.content[urls[idx]] = json.loads(content) #[:200]
         return len(self.content)
 
+    def parse_string_to_dict(self, var):
+        """
+        Parse a multi-line formatted string and extract key-value pairs into a dictionary.
+
+        Args:
+            var (str): The input string to parse.
+
+        Returns:
+            dict: A dictionary containing the parsed key-value pairs.
+        """
+        result = {}
+
+        # Split the input string into lines and process each line
+        for line in var.strip().splitlines():
+            # Split each line into key and value parts by the first occurrence of ':'
+            if ':' in line:
+                key, value = line.split(':', 1)  # Split only on the first ':'
+                key = key.strip()                # Remove any leading/trailing spaces from the key
+                value = value.strip()            # Remove any leading/trailing spaces from the value
+
+                # If the value contains a comma, convert it into a list of values
+                if ',' in value:
+                    value = [v.strip() for v in value.split(',')]
+
+                forbidden = ['data', 'dataset', 'datasets']
+                if type(value) == list:
+                    for v in value:
+                        if not v in result:
+                            if len(key) > 2 and not key in forbidden:
+                                result[v] = key.lower()
+                else:
+                    if value and key:
+                        result[value] = key.lower()
+                #if 'locations' in result:
+                #    result['keywords'].pop(result['locations'], None)
+                print(json.dumps(result))
+
+        return result
+
     def smartprompt(self, prompt):
         self.ai = AIMaker(config, LLAMA_URL=os.environ['OLLAMA'].replace('http://',''), debug=True)
         language = "English"
@@ -78,39 +125,85 @@ class Paracrawl():
         newrole = "classification model"
         self.ai.changerole(newrole)
         category = "informational"
-        keywords = ["second world war", "Ukraine", "data"]
+        keywords = {"second world war": "keyword", "Ukraine": "location", "data": "keyword"}
         year = "2024"
 
-        example = f"""
+        exampleJSON = f"""
         {{
+    "@context": {{
+        "classification": "https://schema.org/Thing",
+        "keywords": "https://schema.org/keywords",
+        "synonyms": "https://schema.org/sameAs",
+        "country": "https://schema.org/Country",
+        "locations": "https://schema.org/Location",
+        "period": {{
+            "@id": "https://schema.org/TimePeriod",
+            "@type": "https://schema.org/Date"
+        }},
+        "searchquery": "https://schema.org/SearchAction",
+        "person": "https://schema.org/Person",
+        "organization": "https://schema.org/Organization",
+        "alternativeLocation": "https://schema.org/Place"
+    }},
+          "@type": "Thing",
           "classification": "{category}",
           "keywords": {json.dumps(keywords)},
           "synonyms": "{{ [synonym1, synonym2] }}",
-          "country": "{{ country1, country2 }},
+          "locations": "{{ [location1, location2, location3] }},
+          "country": "{{ country }},
           "period": "{{'startyear': year, 'endyear': year}}"
         }}
         """
-        newprompt = f"You are %%role%%. Your task is to use %%focus%% and classify <TEXT> and </TEXT> in %%message%%. Return the classification and list of keywords in this structure {example} without giving any extra explanation. For each \"keyword\", provide up to 10 synonyms in English and Dutch, put predicated geolocations in \"country\", make prediction on the period with dates."  # Don't mention yourself as %%role%%."
+        example = f""" in CVS format:
+        locations: location1, location2, location3
+        keywords: keyword1, keyword2, keyword3
+        date: 2013
+        question: keyword1, keyword2
+        """
+
+        languages = "in English"
+        newprompt = f"You are %%role%%. Your task is to use %%focus%% and classify <TEXT> and </TEXT> in %%message%%. Return the classification and list of keywords exactly like in this structure {example} without giving any extra explanation. For each \"keywords\" field, provide up to 10 synonyms in {languages}, put city or local region in \"locations\" field including country if there is some location mentioned (include this location), make prediction on the period with dates only if present. Put in \"question\" field only main keywords extracted from input."  # Don't mention yourself as %%role%%."
+        #print(newprompt)
         self.ai.changeprompt(newprompt)
         annotr = self.ai.llama3(prompt).replace("As a %s, " % newrole, '')
-        q = linked_data_query_constructor(annotr)
+        print(annotr)
+        print('***')
+        #q = linked_data_query_constructor(annotr)
+        ner = self.parse_string_to_dict(annotr)
+        print(ner)
+        g = GraphQuery(ner)
+        # Generate and print the Solr query from the graph
+        solr_query = g.generate_solr_query()
+        print(solr_query)
+        if solr_query:
+            q = {'searchquery': solr_query }
+            #q = {}
+            #for item in ner:
+            #    if ner[item] == 'question':
+            #        q = {'searchquery': item } 
+            self.smartquery = q
+            return q
         searchquery = ''
         forbidden = ['dataset', 'data']
         if 'keywords' in q:
             searchquery = ''
             for keyword in q['keywords']:
+                print("KKK %s " % keyword)
                 if searchquery:
                     qkeyword = keyword
                     if ' ' in keyword:
                         qkeyword = "\"%s\"~3 " % keyword
                     if not 'data' in qkeyword.lower():
-                        searchquery = "%s OR %s" % (searchquery, qkeyword)
+                        thisoperator = 'OR' 
+                        if qkeyword.isdigit():
+                            thisoperator = 'AND'
+                        searchquery = "%s %s title:%s" % (searchquery, thisoperator, qkeyword)
                 else:
                     qkeyword = keyword
                     if ' ' in keyword:
                         qkeyword = "\"%s\"~3" % keyword
                     if not 'data' in qkeyword.lower(): 
-                        searchquery = qkeyword
+                        searchquery = "title:%s" % qkeyword
             if searchquery:
                 q['searchquery'] = searchquery
         self.smartquery = q

@@ -4,6 +4,10 @@ class GraphQuery():
     def __init__(self, ner, debug=False):
         self.allfields = ['title', 'description', 'keyword']
         self.params = {}
+        forbidden = ['data', 'datasets', 'dataset', 'not specified', 'NA', 'N/A', 'None', 'statistics', 'data set']
+        for item in forbidden:
+            if item.lower() in ner:
+                ner.pop(item)
         self.ner = ner
         self.values = []
         self.G = self.create_query_graph(self.ner)
@@ -96,14 +100,14 @@ class GraphQuery():
 
         # Combine subjects with OR
         #print(subject_group)
-        if 'keyword' in self.params:
-            subject_group = set(self.params['keyword'])
+        if 'keywords' in self.params:
+            subject_group = set(self.params['keywords'])
             subject_group_str = " OR ".join(subject_group)
         else:
             subject_group_str = ''
             
-        if 'loc' in self.params:
-            loc_group = set(self.params['loc'])
+        if 'locations' in self.params:
+            loc_group = set(self.params['locations'])
             loc_group_str = " OR ".join(loc_group)
         else:
             loc_group_str = ''
