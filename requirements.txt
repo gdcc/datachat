@@ -1,3 +1,12 @@
 streamlit
 git+https://github.com/Dans-labs/pyDataverse@development#egg=pyDataverse
-
+nest_asyncio
+async_timeout
+aiohttp
+elasticsearch==6.8.0
+textblob
+langid
+arrow
+pytz
+geocoder
+pymongo

@@ -15,6 +15,11 @@ def get_doi_from_text(text):
         doi = match.group(1)  # Extracted DOI
         return doi
     else:
+        doi_pattern = r'https\:\/\/doi.org\/(\S+)'
+        match = re.search(doi_pattern, text)
+        if match:
+            doi = "doi:%s" % match.group(1)
+            return doi.replace('"','')
         print("DOI not found.")
         # check for handle
         #hdl:10622/SOS0KC#
@@ -22,7 +27,7 @@ def get_doi_from_text(text):
         match = re.search(hdl_pattern, text)
         if match:
             return match.group(1)
-    return
+    return False
 
 def get_json(doi):
     if 'FAKEDNS' in os.environ:
@@ -138,20 +143,16 @@ def linked_data_query_constructor(textinput):
     if json_pattern:
         json_string = json_pattern.group(1)
 
-        # Replace single quotes with double quotes to ensure valid JSON
         json_string = json_string.replace("'", '"')
-        for lineitem in json_string.split('\n'):
-            if lineitem[-1:] == ']':
-                lineitem+=','
-            print("%s -> %s\n" % (lineitem, lineitem[-1:]))
+        #for lineitem in json_string.split('\n'):
+        #    if lineitem[-1:] == ']':
+        #        lineitem+=','
         try:
-            # Convert JSON string to Python dictionary
             extracted_query = json.loads(json_string)
             if 'keywords' in extracted_query:
                 searchquery = ''
                 for keyword in extracted_query['keywords']:
                     searchquery = "%s AND %s" % (searchquery, keyword)
-                #extracted_query['searchquery'] = searchquery
             return extracted_query
         except json.JSONDecodeError as e:
             print(f"Failed to parse JSON: {e}")
