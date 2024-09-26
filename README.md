@@ -6,3 +6,6 @@ Quick start:
 cp env_sample .env
 docker-compose up -d
 ```
+Demo
+![Demo of Feature](docs/demo.gif)
+
