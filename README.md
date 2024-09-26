@@ -1,4 +1,4 @@
-# Graph AI
+# DataChat - AI powered app for Dataverse and other data platforms
 Experimental Graph AI implementation for Croissant ML support in Dataverse and SSHOC.nl 
 
 Quick start:
