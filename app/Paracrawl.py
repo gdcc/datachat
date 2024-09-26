@@ -21,7 +21,10 @@ class Paracrawl():
         if directquery:
             self.query = directquery
         else:
-            self.query = self.smartprompt("<TEXT>%s</TEXT>" % prompt)['searchquery']
+            try:
+                self.query = self.smartprompt("<TEXT>%s</TEXT>" % prompt)['searchquery']
+            except:
+                self.query = ''
         self.run()
         self.results = []
         self.reader()
@@ -59,11 +62,13 @@ class Paracrawl():
             if 'items' in content['data']:
                 for item in content['data']['items']:
                     if 'citationHtml' in item:
-                        html =  "<b><a href='/?url=%s'>[ Chat ]</a></b>&nbsp;%s" % ("http://" + get_doi_from_text(item['citationHtml']), item['citationHtml']) 
-                        self.results.append(html)
+                        thisdoi = get_doi_from_text(item['citationHtml'])
+                        if thisdoi:
+                            html =  "<b><a href='/?url=%s'>[ Chat ]</a></b>&nbsp;%s" % ("http://" + thisdoi, item['citationHtml']) 
+                            self.results.append(html)
                     else:
                         if 'dataset_citation' in item:
-                            html = "<a href='/?url=%s'>Chat</a>&nbsp;%s" % ("http://%s" % item['dataset_persistent_id'], item['dataset_citation'])
+                            html = "<b><a href='/?url=%s'>[ Chat ]</a></b>&nbsp;%s" % ("http://%s" % item['dataset_persistent_id'], item['dataset_citation'])
                             self.results.append(html)
         return
 

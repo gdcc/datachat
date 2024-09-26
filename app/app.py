@@ -54,7 +54,7 @@ if st.button("Get Response") or url:
             doi = get_doi_from_text(url.replace('=doi',' doi'))
         else:
             doi = get_doi_from_text(prompt)
-        st.write("%s / %s" % (prompt, doi))
+        #st.write("%s / %s" % (prompt, doi))
         if doi:
             st.session_state.doi = doi
             st.markdown("Working with dataset <a href='%s'>%s</a>." % (url, doi), unsafe_allow_html=True)
@@ -63,11 +63,20 @@ if st.button("Get Response") or url:
             response = query_ollama(llmprompt)
             st.write(response)
         else:
-            st.write("Click <b>Chat</b> button if you want to chat with some dataset")
-            p = Paracrawl(prompt, sources())
-            response = "<p>%s</p>" % p.smartquery['searchquery']
-            for item in p.results:
-                response+="<br>%s</br>" % item
+            st.write("Click \"Chat\" button if you want to chat with some dataset")
+            ready = False
+            response = ''
+            for i in range(3):
+                if not ready:
+                    try:
+                        p = Paracrawl(prompt, sources())
+                        response = "<p>Query: <i>%s</i></p>" % p.smartquery['searchquery']
+                        if p.results:
+                            ready = True
+                            for item in p.results:
+                                response+="<br>%s</br>" % item
+                    except:
+                        ready = False
             st.markdown(response, unsafe_allow_html=True)
     else:
        st.write("Please enter a prompt.")
