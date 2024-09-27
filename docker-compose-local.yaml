@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    container_name: datachat
+    ports:
+      - "8501:8501"
+    working_dir: /app
+    command: streamlit run app/app.py
+    volumes:
+      #- ./app:/app
+      - ${CONFIG}:/config
+      - ${DATADIR}:/data
+    environment:
+      - PYTHONPATH=/app
+      - STREAMLIT_SERVER_ENABLECORS=false
+      - OLLAMA
+      - MODEL
+      - INTRO
+      - TITLE
+      - FAKEDNS
+      - DATADIR
+      - IDATADIR
+      - SOURCES
+    restart: always
+
+  llama:
+    volumes:
+      - ./ollama-docker/ollama/ollama:/root/.ollama
+    container_name: ollama
+    pull_policy: always
+    tty: true
+    restart: unless-stopped
+    image: ollama/ollama:latest
+    ports:
+      - 11434:11434
