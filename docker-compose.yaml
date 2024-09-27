@@ -1,16 +1,19 @@
-version: '3.8'
+version: '3'
 
 services:
-  streamlit_app:
+  web:
     build: .
-    container_name: llmtalk
+    container_name: datachat
     ports:
       - "8501:8501"
+    working_dir: /app
+    command: streamlit run app/app.py
     volumes:
-      - ./app:/app
+      #- ./app:/app
       - ${CONFIG}:/config
       - ${DATADIR}:/data
     environment:
+      - PYTHONPATH=/app
       - STREAMLIT_SERVER_ENABLECORS=false
       - OLLAMA
       - MODEL
