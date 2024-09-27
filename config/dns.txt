@@ -1,0 +1,4 @@
+*;https://dataverse.harvard.edu/api/datasets/export?exporter=croissant&persistentId=%%id%%
+dans;https://portal.devstack.odissei.nl/api/datasets/export?exporter=croissant&persistentId=%%id%%
+10.7910;https://dataverse.harvard.edu/api/datasets/export?exporter=croissant&persistentId=%%id%%
+10.5072;https://database.sharemusic.se/api/datasets/export?exporter=croissant&persistentId=%%id%%
