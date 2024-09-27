@@ -1,6 +1,6 @@
-OLLAMA=http://192.147.18.108:11434
+COMPOSE_FILE=./docker-compose-local.yaml
+OLLAMA=http://llama:11434
 SOURCES='"https://dataverse.harvard.edu","https://dataverse.nl","https://archaeology.datastations.nl","https://ssh.datastations.nl","https://lifesciences.datastations.nl","https://dataverse.jpl.nasa.gov"'
-MTITLE=MuseIT language Interface
 TITLE=Dataverse language Interface
 MODEL=llama3
 INTRO=Enter your question or DOI of some dataset, for example, doi:10.7910/DVN/XLJGUI
