@@ -19,6 +19,7 @@ Demo of the app below:
 ### Citation
 
 For academic use please cite this work as:
+
 ``
-Tykhonov, Vyacheslav. (2024, September 26). Building natural language interface for Dataverse network based on Croissant ML standard. Zenodo. https://doi.org/10.5281/zenodo.13842869
+Tykhonov, Vyacheslav. (2024). Building natural language interface for Dataverse network based on Croissant ML standard. Zenodo. https://doi.org/10.5281/zenodo.13842869
 ``
