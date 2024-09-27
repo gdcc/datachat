@@ -1,4 +1,5 @@
 import networkx as nx
+from app.config import config
 
 class GraphQuery():
     def __init__(self, ner, debug=False):

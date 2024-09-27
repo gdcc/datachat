@@ -20,18 +20,16 @@ import hashlib
 class AIMaker():
     def __init__(self, config, LLAMA_URL, defaultmodel="llama3", defaultrole="traveller", focus='test', ingest=False, debug=False):
         self.config = config
+        self.elastic = False
+        esconfig = {}
         if 'ELASTIC' in config:
             self.elastic = Elasticsearch([config['ELASTIC']], http_auth=(config['HTTP_LOGIN'], config['HTTP_PASSWORD']), use_ssl=False, verify_certs=False, timeout=config['ELASTICTIMEOUT'])
-        else:
-            self.elastic = ''
-
-        esconfig = {}
-        esconfig['elastichost'] = config['ELASTIC']
-        esconfig['elasticlogin'] = config['HTTP_LOGIN']
-        esconfig['elasticpassword'] = config['HTTP_PASSWORD']
-        esconfig['elasticport'] = config['ELASTICPORT']
-        esconfig['elasticindex'] = config['INDEX']
-        esconfig['elasticcollection'] = config['COLLECTION']
+            esconfig['elastichost'] = config['ELASTIC']
+            esconfig['elasticlogin'] = config['HTTP_LOGIN']
+            esconfig['elasticpassword'] = config['HTTP_PASSWORD']
+            esconfig['elasticport'] = config['ELASTICPORT']
+            esconfig['elasticindex'] = config['INDEX']
+            esconfig['elasticcollection'] = config['COLLECTION']
         self.mq = NowMuseum(esconfig)
 
         self.model = defaultmodel

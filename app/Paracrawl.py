@@ -9,6 +9,7 @@ from utils import linked_data_query_constructor, get_doi_from_text
 from config import config
 from AI import AIMaker
 from GraphQuery import GraphQuery
+import logging
 
 # Allow nested event loops in environments like Jupyter Notebooks
 nest_asyncio.apply()
@@ -16,7 +17,7 @@ class Paracrawl():
     def __init__(self, prompt, dataverses, directquery=None, debug=False):
         self.DEBUG = debug
         self.content = {}
-        self.smartquery = ''
+        self.smartquery = {'searchquery': ''}
         self.roots = dataverses
         if directquery:
             self.query = directquery
@@ -122,10 +123,12 @@ class Paracrawl():
         return result
 
     def smartprompt(self, prompt):
+        logging.info("smartprompt")
         self.ai = AIMaker(config, LLAMA_URL=os.environ['OLLAMA'].replace('http://',''), debug=True)
         language = "English"
         newrole = "search expert specializing in search engines."
         focus = "classification of under 3 different intent categories:  transactional, navigational, informational. Informational search queries: in these instances, the user is looking for certain information for example, “how to make coffee”, avigational search queries: these requests establish that the user wants to visit a specific site or find a certain vendor– for example, “YouTube” or “Apple”."
+        logging.debug("This is a debug message: %s", focus)
         self.ai.changefocus(focus)
         newrole = "classification model"
         self.ai.changerole(newrole)
