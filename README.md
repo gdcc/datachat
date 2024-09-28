@@ -1,5 +1,7 @@
 # DataChat - AI powered app for data
-DataChat is multilingual Open-Source natural language interface for Dataverse and other data platforms with experimental Graph AI implementation for [Croissant ML](https://docs.mlcommons.org/croissant/docs/croissant-spec.html) support. The module developed by [DANS-KNAW](http://dans.knaw.nl) (Data Archiving and Networked Services, the Netherlands).
+DataChat is multilingual Open-Source natural language interface for Dataverse and other data platforms with experimental Graph AI implementation for [Croissant ML](https://docs.mlcommons.org/croissant/docs/croissant-spec.html) support. DataChat can literally talk back to you and explain what is inside of every single dataset, you can ask any questions and it's responding on the level of metadata described by Croissant standard.
+
+This AI Agent is being developed by [Slava Tykhonov](https://orcid.org/0000-0001-9447-9830) from [DANS-KNAW](http://dans.knaw.nl) (Data Archiving and Networked Services, the Netherlands).
 
 # Acknowledgements
 DataChat is in active development, please find below the acknowledgements for resources and contributions from the ongoing projects.
