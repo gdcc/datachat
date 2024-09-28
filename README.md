@@ -1,5 +1,5 @@
 # DataChat - AI powered app for data
-DataChat is Open-Source natural language interface for Dataverse and other data platforms with experimental Graph AI implementation for Croissant ML support.
+DataChat is multilingual Open-Source natural language interface for Dataverse and other data platforms with experimental Graph AI implementation for Croissant ML support.
 
 # Acknowledgements
 DataChat is in active development, please find below the acknowledgements for resources and contributions from the ongoing projects.
