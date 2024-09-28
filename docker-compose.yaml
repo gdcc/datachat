@@ -12,6 +12,8 @@ services:
       #- ./app:/app
       - ${CONFIG}:/config
       - ${DATADIR}:/data
+      - ${CACHEDIR}:/root/.cache
+      - ${INSTALLATION}:/app/installation
     environment:
       - PYTHONPATH=/app
       - STREAMLIT_SERVER_ENABLECORS=false
