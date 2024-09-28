@@ -8,3 +8,5 @@ FAKEDNS=/config/dns.txt
 DATADIR=./data
 IDATADIR=/data
 CONFIG=./config
+CACHEDIR=./cache
+INSTALLATION=./installation
