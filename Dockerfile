@@ -1,7 +1,7 @@
 # Use an official Python runtime as a parent image
 FROM python:3.11-slim
 
-RUN apt update;apt install -y git vim curl wget
+RUN apt update;apt install -y git vim curl wget gcc g++
 
 # Set the working directory in the container
 WORKDIR /app
@@ -11,6 +11,7 @@ COPY requirements.txt /app/
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
+RUN python -m spacy download en_core_web_sm
 
 # Copy the rest of the application
 COPY . /app

@@ -3,6 +3,7 @@ from elasticsearch import Elasticsearch
 from .AI import AIMaker 
 import app
 import arrow
+import os
 import re
 import textwrap
 from datetime import datetime, date, timedelta
@@ -10,6 +11,7 @@ import pytz
 import textwrap
 from calendar import timegm
 from textblob import TextBlob
+from .config import entities
 import langid
 import requests, json, io, sys
 import random
@@ -17,8 +19,10 @@ from collections import Counter
 from nltk.util import ngrams
 import nltk
 from time import sleep
-
+import spacy
+nlp = spacy.load('en_core_web_sm')
 nltk.download('punkt_tab')
+
 class Attention():
     def __init__(self, question=None, config=None, LLAMA_URL=None, debug=False):
         self.keywords = []
@@ -27,7 +31,7 @@ class Attention():
         if LLAMA_URL:
             self.llama_url = LLAMA_URL
         else:
-            self.llama_url = os.environ['LLAMA']
+            self.llama_url = os.environ['OLLAMA']
         if question:
             self.question = question
             self.answer()
@@ -109,4 +113,59 @@ class Attention():
             anno = ai.llama3(self.question)
             self.keywords+=(self.extract_queries(anno))
         return self.keywords
+
+    def analyze_question(self, qa, debug=False):
+        doc = nlp(qa)
+        entities = {}
+        # Identifying action (verb) in the question
+        action = None
+        for token in doc:
+            if token.pos_ == 'VERB' and token.dep_ == 'ROOT':
+                action = token.text
+                break
+    
+        # Identifying direct objects and main subjects
+        subjects = []
+        objects = []
+        for token in doc:
+            if token.dep_ == 'nsubj' or token.dep_ == 'nsubjpass':  # Subject
+                subjects.append(token.text)
+            elif token.dep_ == 'dobj' or token.dep_ == 'attr':  # Direct Object
+                objects.append(token.text)
+    
+        # Identifying named entities (like people, organizations, etc.)
+        named_entities = []
+        for ent in doc.ents:
+            named_entities.append((ent.text, ent.label_))
+    
+        # Prepositions and relationships
+        relationships = []
+        for token in doc:
+            if token.pos_ == 'ADP':  # Prepositions (like 'by', 'with', etc.)
+                phrase = ' '.join([tok.text for tok in token.subtree])
+                relationships.append(phrase)
+    
+        # Noun Phrases
+        noun_phrases = [chunk.text for chunk in doc.noun_chunks]
+        if action:
+            entities['action'] = action
+        if subjects:
+            entities['subjects'] = subjects
+        if objects:
+            entities['objects'] = objects
+        if named_entities:
+            entities['named_entities'] = named_entities
+        if relationships:
+            entities['relationships'] = relationships
+        if noun_phrases:
+            entities['noun_phrases'] = noun_phrases
+        if debug:
+            # Printing out the analysis
+            print(f"Action Verb: {action}")
+            print(f"Subjects: {subjects}")
+            print(f"Objects: {objects}")
+            print(f"Named Entities: {named_entities}")
+            print(f"Relationships: {relationships}")
+            print(f"Noun Phrases: {noun_phrases}")
+        return entities
 
