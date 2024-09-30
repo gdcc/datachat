@@ -131,17 +131,29 @@ def datacache(doi):
             return jsonld
     return
 
+def applyfilter(datasource):
+    if 'FILTER' in os.environ:
+        filters = os.environ['FILTER'].split(',')
+        for filter in filters:
+            if filter in str(datasource):
+                return True 
+        return False 
+    else:
+        return True
+
 def sources():
     if 'SOURCES' in os.environ:
         if 'http' in os.environ['SOURCES']:
             data = requests.get(os.environ['SOURCES'])
             hosts = ['https://dataverse.harvard.edu'] 
+            hosts = []
             for instance in data.json()['installations']:
                 hostname = instance['hostname']
                 if not 'http' in hostname:
                     hostname = "https://%s" % hostname
-                if not hostname in hosts:
+                if not hostname in hosts and applyfilter(instance):
                     hosts.append(hostname)
+            hosts.append('https://portal.staging.odissei.nl')
             return hosts
         else: 
             sources = os.environ['SOURCES']

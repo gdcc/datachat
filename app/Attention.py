@@ -28,6 +28,7 @@ class Attention():
         self.keywords = []
         self.maintopic = []
         self.CYCLES = 2
+        self.entities = entities
         if LLAMA_URL:
             self.llama_url = LLAMA_URL
         else:
@@ -169,3 +170,39 @@ class Attention():
             print(f"Noun Phrases: {noun_phrases}")
         return entities
 
+    def form_ner_report(self, result):
+        ner = {}
+        entityset = [] 
+        if 'named_entities' in result:
+            for ent, value in result['named_entities']:
+                entityset.append(ent)
+                if 'crosswalks' in self.entities[value]:
+                    for filter in self.entities[value]['crosswalks'].split(' '):
+                        if 'author' in filter:
+                            entR = self.reverse_name(ent)
+                            if entR in ner:
+                                entR+=' '
+                            ner[entR] = filter.replace(',','')
+                        ner[ent] = filter.replace(',','')
+                        ent+=' '
+                else:
+                    ner[ent] = 'keywords'
+
+        for ner_entity in entityset:
+            if 'noun_phrases' in result:
+                for ent in result['noun_phrases']:
+                    if not ner_entity in ent:
+                        ner[ent] = 'keywords'
+        if not entityset:
+            for ent in result['noun_phrases']:
+                    ner[ent] = 'keywords'  
+        return ner
+
+    def reverse_name(self, name):
+        # Split the name by space
+        name_parts = name.split()
+        
+        # Reverse the order and format
+        reversed_name = f"{name_parts[-1]}, {name_parts[0]}"
+        
+        return reversed_name

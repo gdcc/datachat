@@ -3,7 +3,8 @@ entities = {
     "PERSON": {
       "description": "People, including fictional characters",
       "relationship": "PERSON",
-      "crosswalks": "creator, author"
+      "crosswalks": "creator, author",
+      "crosswalks": "authorName, authorAffiliation"
     },
     "NORP": {
       "description": "Nationalities or religious or political groups",
@@ -16,15 +17,18 @@ entities = {
     "ORG": {
       "description": "Companies, agencies, institutions, etc.",
       "relationship": "ORG",
-      "crosswalks": "creator, author"
+      "crosswalks": "creator, author",
+      "crosswalks": "authorName, authorAffiliation"
     },
     "GPE": {
       "description": "Countries, cities, states",
-      "relationship": "GPE"
+      "relationship": "GPE",
+      "crosswalks": "locations"
     },
     "LOC": {
       "description": "Non-GPE locations, mountain ranges, bodies of water",
-      "relationship": "LOC"
+      "relationship": "LOC",
+      "crosswalks": "locations"
     },
     "PRODUCT": {
       "description": "Objects, vehicles, foods, etc. (not services)",
@@ -49,11 +53,13 @@ entities = {
     "DATE": {
       "description": "Absolute or relative dates or periods",
       "relationship": "DATE",
-      "crosswalks": "date"
+      "crosswalks": "date",
+      "crosswalks": "dsPublicationDate"
     },
     "TIME": {
       "description": "Times smaller than a day",
-      "relationship": "TIME"
+      "relationship": "TIME",
+      "crosswalks": "dsPublicationDate"
     },
     "PERCENT": {
       "description": "Percentage (e.g., 20%)",

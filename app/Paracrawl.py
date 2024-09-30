@@ -65,6 +65,7 @@ class Paracrawl():
             self.q = self.q.replace(' ','%20')
             self.urls.append("%s/api/search?q=%s" % (url, self.q))
         print("Total: %s" % len(self.urls))
+        logging.info(self.urls)
         return self.urls
 
     def reader(self):
