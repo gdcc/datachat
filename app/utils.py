@@ -133,9 +133,20 @@ def datacache(doi):
 
 def sources():
     if 'SOURCES' in os.environ:
-        sources = os.environ['SOURCES']
-        return sources.replace('"','').replace('\n','').split(',')
-    return
+        if 'http' in os.environ['SOURCES']:
+            data = requests.get(os.environ['SOURCES'])
+            hosts = ['https://dataverse.harvard.edu'] 
+            for instance in data.json()['installations']:
+                hostname = instance['hostname']
+                if not 'http' in hostname:
+                    hostname = "https://%s" % hostname
+                if not hostname in hosts:
+                    hosts.append(hostname)
+            return hosts
+        else: 
+            sources = os.environ['SOURCES']
+            return sources.replace('"','').replace('\n','').split(',')
+    return 
 
 def linked_data_query_constructor(textinput):
     json_pattern = re.search(r'({.*})', textinput, re.DOTALL)

@@ -5,27 +5,36 @@ import os
 import async_timeout
 import aiohttp
 import json
-from utils import linked_data_query_constructor, get_doi_from_text
-from config import config
-from AI import AIMaker
-from GraphQuery import GraphQuery
+from .utils import linked_data_query_constructor, get_doi_from_text
+from .config import config
+from .AI import AIMaker
+from .GraphQuery import GraphQuery
+from .Attention import Attention
 import logging
+from urllib.parse import urlparse
 
 # Allow nested event loops in environments like Jupyter Notebooks
 nest_asyncio.apply()
 class Paracrawl():
-    def __init__(self, prompt, dataverses, directquery=None, debug=False):
+    def __init__(self, prompt, dataverses, reasoning=None, directquery=None, debug=False):
         self.DEBUG = debug
         self.content = {}
+        self.strategy = 'STRICT'
         self.smartquery = {'searchquery': ''}
         self.roots = dataverses
+        self.timeout = 10
+        if reasoning:
+            self.reasoning = reasoning
+        else:
+            self.reasoning = os.environ['REASONING']
+
         if directquery:
             self.query = directquery
         else:
-            try:
-                self.query = self.smartprompt("<TEXT>%s</TEXT>" % prompt)['searchquery']
-            except:
-                self.query = ''
+#            try:
+             self.query = self.smartprompt("<TEXT> %s </TEXT>" % prompt)['searchquery']
+#            except:
+#                self.query = ''
         self.run()
         self.results = []
         self.reader()
@@ -33,12 +42,14 @@ class Paracrawl():
     async def fetch(self, session, url):
         """Fetch a page's content with a timeout."""
         try:
-            with async_timeout.timeout(10):  # Timeout for the request
-                async with session.get(url) as response:
+            with async_timeout.timeout(int(self.timeout)):  # Timeout for the request
+                async with session.get(url, ssl=False) as response:
                     #print(f"Fetching {url}")
                     return await response.text(), response.status
         except Exception as e:
             print(f"Error fetching {url}: {e}")
+            with open("%s/error.log" % os.environ['DATADIR'], "w") as file:
+                file.write(urlparse(url).hostname) 
             return None, None
 
     async def crawl(self, urls):
@@ -53,6 +64,7 @@ class Paracrawl():
             self.q = self.query
             self.q = self.q.replace(' ','%20')
             self.urls.append("%s/api/search?q=%s" % (url, self.q))
+        print("Total: %s" % len(self.urls))
         return self.urls
 
     def reader(self):
@@ -60,7 +72,8 @@ class Paracrawl():
             print(url)
             content = self.content[url]
             #print(content)
-            if 'items' in content['data']:
+            #if 'items' in content['data']:
+            try:
                 for item in content['data']['items']:
                     if 'citationHtml' in item:
                         thisdoi = get_doi_from_text(item['citationHtml'])
@@ -71,6 +84,8 @@ class Paracrawl():
                         if 'dataset_citation' in item:
                             html = "<b><a href='/?url=%s'>[ Chat ]</a></b>&nbsp;%s" % ("http://%s" % item['dataset_persistent_id'], item['dataset_citation'])
                             self.results.append(html)
+            except:
+                return
         return
 
     def run(self):
@@ -79,8 +94,11 @@ class Paracrawl():
 
         # Print results
         for idx, (content, status) in enumerate(results):
-            if content:
-                self.content[urls[idx]] = json.loads(content) #[:200]
+            try:
+                if content:
+                    self.content[urls[idx]] = json.loads(content) #[:200]
+            except:
+                continue
         return len(self.content)
 
     def parse_string_to_dict(self, var):
@@ -124,6 +142,7 @@ class Paracrawl():
 
     def smartprompt(self, prompt):
         logging.info("smartprompt")
+        qa = prompt
         self.ai = AIMaker(config, LLAMA_URL=os.environ['OLLAMA'].replace('http://',''), debug=True)
         language = "English"
         newrole = "search expert specializing in search engines."
@@ -172,12 +191,28 @@ class Paracrawl():
         languages = "in English"
         newprompt = f"You are %%role%%. Your task is to use %%focus%% and classify <TEXT> and </TEXT> in %%message%%. Return the classification and list of keywords exactly like in this structure {example} without giving any extra explanation. For each \"keywords\" field, provide up to 10 synonyms in {languages}, put city or local region in \"locations\" field including country if there is some location mentioned (include this location), make prediction on the period with dates only if present. Put in \"question\" field only main keywords extracted from input."  # Don't mention yourself as %%role%%."
         #print(newprompt)
-        self.ai.changeprompt(newprompt)
-        annotr = self.ai.llama3(prompt).replace("As a %s, " % newrole, '')
-        print(annotr)
-        print('***')
+        #self.ai.changeprompt(newprompt)
+        #annotr = self.ai.llama3(prompt).replace("As a %s, " % newrole, '')
+
+        ner = {}
+        if self.reasoning == 'llama':
+            attention = Attention(LLAMA_URL=os.environ['OLLAMA'].replace('http://',''))
+            attention.changequestion(qa)
+            ner = {}
+            #ner = { 'netherlands': 'locations' }
+            for keyword in attention.keywords: 
+                if len(keyword.split(' ')) > 1:
+                    ner[keyword] = 'keywords'
+
+        if self.reasoning == 'spacy':
+            attention = Attention()
+            entities = attention.analyze_question(qa)
+            ner = attention.form_ner_report(entities)
+
+        #print(annotr)
+        #print('***')
         #q = linked_data_query_constructor(annotr)
-        ner = self.parse_string_to_dict(annotr)
+        #ner = self.parse_string_to_dict(annotr)
         print(ner)
         g = GraphQuery(ner)
         # Generate and print the Solr query from the graph
@@ -191,6 +226,7 @@ class Paracrawl():
             #        q = {'searchquery': item } 
             self.smartquery = q
             return q
+
         searchquery = ''
         forbidden = ['dataset', 'data']
         if 'keywords' in q:
