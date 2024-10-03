@@ -52,9 +52,13 @@ def main():
                 prompt += f" {st.session_state.doi}"
         if prompt:
             if url:
-                doi = get_doi_from_text(url.replace('=doi',' doi'))
+                (host, doi) = get_doi_from_text(url) #url.replace('=doi',' doi'))
             else:
-                doi = get_doi_from_text(prompt)
+                (host, doi) = get_doi_from_text(prompt)
+
+            if host:
+                os.environ['hostname'] = host
+
             if doi:
                 st.session_state.doi = doi
                 st.markdown(f"Working with dataset <a href='{url}'>{doi}</a>.", unsafe_allow_html=True)
