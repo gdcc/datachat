@@ -4,7 +4,7 @@ import os
 import json
 from pyDataverse.Croissant import Croissant
 
-def get_doi_from_text(text):
+def get_doi_from_text(text, selectedDOI=None):
     # Regular expression pattern to capture DOI
     doi_pattern = r'^(\S+)\/dataset\S+(doi\:\S+)'
 
@@ -147,7 +147,7 @@ def applyfilter(datasource):
 
 def sources():
     if 'SOURCES' in os.environ:
-        if 'http' in os.environ['SOURCES']:
+        if 'github' in os.environ['SOURCES']:
             data = requests.get(os.environ['SOURCES'])
             hosts = ['https://dataverse.harvard.edu'] 
             hosts = []
