@@ -1,0 +1,108 @@
+{
+  "@context": "https://ddi-alliance.bitbucket.io/DDI-CDI/DDI-CDI_v1.0-rc1/encoding/json-ld/ddi-cdi.jsonld",
+  "@graph": [
+    {
+      "@id": "#logicalRecord",
+      "@type": "LogicalRecord",
+      "has": [
+        "#Frequency",
+        "#Year",
+        "#Age Cohort",
+        "#Sex",
+        "#Status",
+        "#Median Income (USD)"
+      ]
+    },
+    {
+      "@id": "#physicalSegmentLayout",
+      "@type": "PhysicalSegmentLayout",
+      "formats": "#logicalRecord",
+      "isDelimited": "true",
+      "delimiter": ",",
+      "has": [
+        "#valueMapping-Frequency",
+        "#valueMapping-Year",
+        "#valueMapping-Age Cohort",
+        "#valueMapping-Sex",
+        "#valueMapping-Status",
+        "#valueMapping-Median Income (USD)"
+      ]
+    },
+    {
+      "@id": "#physicalRecordSegment",
+      "@type": "PhysicalRecordSegment",
+      "mapsTo": "#logicalRecord",
+      "has": [
+        "#physicalSegmentLayout",
+        "#physicalDataset"
+      ]
+    },
+    {
+      "@id": "#valueMapping-Frequency",
+      "@type": "ValueMapping",
+      "has": [
+        "#Frequency"
+      ]
+    },
+    {
+      "@id": "#valueMapping-Year",
+      "@type": "ValueMapping",
+      "has": [
+        "#Year"
+      ]
+    },
+    {
+      "@id": "#valueMapping-Age Cohort",
+      "@type": "ValueMapping",
+      "has": [
+        "#Age Cohort"
+      ]
+    },
+    {
+      "@id": "#valueMapping-Sex",
+      "@type": "ValueMapping",
+      "has": [
+        "#Sex"
+      ]
+    },
+    {
+      "@id": "#valueMapping-Status",
+      "@type": "ValueMapping",
+      "has": [
+        "#Status"
+      ]
+    },
+    {
+      "@id": "#valueMapping-Median Income (USD)",
+      "@type": "ValueMapping",
+      "has": [
+        "#Median Income (USD)"
+      ]
+    },
+    {
+      "@id": "#physicalDataset",
+      "@type": "PhysicalDataset",
+      "formats": "#dataStore",
+      "physicalFileName": "example.csv",
+      "has": []
+    },
+    {
+      "@id": "#dataStore",
+      "@type": "DataStore",
+      "has": [
+        "#logicalRecord"
+      ]
+    },
+    {
+      "@id": "#dataset",
+      "@type": "DimensionalDataSet",
+      "isStructuredBy": "#datastructure",
+      "has": []
+    },
+    {
+      "@id": "#datastructure",
+      "@type": "DimensionalDataStructure",
+      "has": []
+    }
+  ]
+}
