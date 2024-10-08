@@ -4,16 +4,17 @@ import os
 import json
 from pyDataverse.Croissant import Croissant
 
-def get_doi_from_text(text):
+def get_doi_from_text(text, selectedDOI=None):
     # Regular expression pattern to capture DOI
-    doi_pattern = r'(doi\:\S+)'
+    doi_pattern = r'^(\S+)\/dataset\S+(doi\:\S+)'
 
     # Find DOI in the string
     match = re.search(doi_pattern, text)
 
     if match:
         doi = match.group(1)  # Extracted DOI
-        return doi
+        return (match.group(1), match.group(2))
+        #return doi
     else:
         doi_pattern = r'https\:\/\/doi.org\/(\S+)'
         match = re.search(doi_pattern, text)
@@ -26,8 +27,8 @@ def get_doi_from_text(text):
         hdl_pattern = r'(hdl\:\S+)'
         match = re.search(hdl_pattern, text)
         if match:
-            return match.group(1)
-    return False
+            return (False, match.group(1))
+    return (False, False)
 
 def get_json(doi):
     if 'FAKEDNS' in os.environ:
@@ -95,7 +96,7 @@ def fakedns(file_path):
         print(f"An error occurred: {e}")
         return
 
-def datacache(doi):
+def datacache(doi, url=False):
     url = ''
     if 'FAKEDNS' in os.environ: 
         dns = fakedns(os.environ['FAKEDNS'])
@@ -121,7 +122,10 @@ def datacache(doi):
             if 'ERROR' in jsonld['status']:
                 #host = "https://dataverse.nl"
                 PID = doi #"doi:10.34894/YH"
-                croissant = Croissant(PID) #, host=host) 
+                thishost = False
+                if 'hostname' in os.environ:
+                    thishost = os.environ['hostname']
+                croissant = Croissant(PID, host=thishost) 
                 jsonld = croissant.get_record()
         except:
             skip = True
@@ -131,11 +135,34 @@ def datacache(doi):
             return jsonld
     return
 
+def applyfilter(datasource):
+    if 'FILTER' in os.environ:
+        filters = os.environ['FILTER'].split(',')
+        for filter in filters:
+            if filter in str(datasource):
+                return True 
+        return False 
+    else:
+        return True
+
 def sources():
     if 'SOURCES' in os.environ:
-        sources = os.environ['SOURCES']
-        return sources.replace('"','').replace('\n','').split(',')
-    return
+        if 'github' in os.environ['SOURCES']:
+            data = requests.get(os.environ['SOURCES'])
+            hosts = ['https://dataverse.harvard.edu'] 
+            hosts = []
+            for instance in data.json()['installations']:
+                hostname = instance['hostname']
+                if not 'http' in hostname:
+                    hostname = "https://%s" % hostname
+                if not hostname in hosts and applyfilter(instance):
+                    hosts.append(hostname)
+            hosts.append('https://portal.staging.odissei.nl')
+            return hosts
+        else: 
+            sources = os.environ['SOURCES']
+            return sources.replace('"','').replace('\n','').split(',')
+    return 
 
 def linked_data_query_constructor(textinput):
     json_pattern = re.search(r'({.*})', textinput, re.DOTALL)

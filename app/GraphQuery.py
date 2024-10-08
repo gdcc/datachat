@@ -3,7 +3,7 @@ from app.config import config
 
 class GraphQuery():
     def __init__(self, ner, debug=False):
-        self.allfields = ['title', 'description', 'keyword']
+        self.allfields = ['title', 'dsDescriptionValue', 'keywordValue', 'authorName']
         self.params = {}
         forbidden = ['data', 'datasets', 'dataset', 'not specified', 'NA', 'N/A', 'None', 'statistics', 'data set']
         for item in forbidden:
@@ -119,6 +119,12 @@ class GraphQuery():
         else:
             date_group_str = ''   
 
+        author_group_str = ''
+        for newfilter in self.params:
+            if 'author' in newfilter:
+                author_group = set(self.params[newfilter])
+                author_group_str = " OR ".join(author_group)
+
         query_conditions = f'{dataset}:"dataset"'
         if subject_group_str:
             query_conditions+=f' AND ({subject_group_str})'
@@ -126,4 +132,6 @@ class GraphQuery():
             query_conditions+=f' AND ({loc_group_str})'
         if date_group_str:
             query_conditions+=f' AND ({date_group_str})'
+        if author_group_str:
+            query_conditions+=f' AND ({author_group_str})'
         return query_conditions

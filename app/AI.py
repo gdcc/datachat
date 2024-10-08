@@ -1,5 +1,5 @@
 #from telethon import TelegramClient, events, sync
-from NowMuseum import NowMuseum
+from .NowMuseum import NowMuseum
 #from telethon.tl.functions.messages import GetHistoryRequest
 import json
 from elasticsearch import Elasticsearch

@@ -1,4 +1,9 @@
 streamlit
+nltk
+sentence-transformers
+rdflib
+keybert
+numpy
 git+https://github.com/Dans-labs/pyDataverse@development#egg=pyDataverse
 nest_asyncio
 async_timeout
@@ -10,3 +15,4 @@ arrow
 pytz
 geocoder
 pymongo
+spacy

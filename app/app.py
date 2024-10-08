@@ -27,7 +27,14 @@ def main():
     def increment():
         st.session_state.count += 1
 
+    # Getting all app parameters
     url = st.query_params.get('url')
+    dataversehost = st.query_params.get('siteUrl')
+    datasetPid = st.query_params.get('datasetPid') 
+    fileId = st.query_params.get('fileId')
+    # Rewriting url if Dataverse host is set
+    if dataversehost:
+        url = dataversehost
 
     # Streamlit App
     st.title(os.environ['TITLE'])
@@ -52,9 +59,13 @@ def main():
                 prompt += f" {st.session_state.doi}"
         if prompt:
             if url:
-                doi = get_doi_from_text(url.replace('=doi',' doi'))
+                (host, doi) = get_doi_from_text(url) #url.replace('=doi',' doi'))
             else:
-                doi = get_doi_from_text(prompt)
+                (host, doi) = get_doi_from_text(prompt)
+
+            if host:
+                os.environ['hostname'] = host
+
             if doi:
                 st.session_state.doi = doi
                 st.markdown(f"Working with dataset <a href='{url}'>{doi}</a>.", unsafe_allow_html=True)
