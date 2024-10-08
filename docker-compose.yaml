@@ -15,6 +15,7 @@ services:
       - ${CACHEDIR}:/root/.cache
       - ${INSTALLATION}:/app/installation
       - ./tests:/app/tests
+#    command: ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
     environment:
       - PYTHONPATH=/app
       - STREAMLIT_SERVER_ENABLECORS=false
@@ -30,3 +31,32 @@ services:
       - FILTER
     restart: always
 
+  api:
+    build: .
+    container_name: apidatachat
+    ports:
+      - "8000:8000"
+    working_dir: /app
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    volumes:
+      #- ./app:/app
+      - ${CONFIG}:/config
+      - ${DATADIR}:/data
+      - ${CACHEDIR}:/root/.cache
+      - ${INSTALLATION}:/app/installation
+      - ./tests:/app/tests
+      - ./app/api.py:/app/main.py
+    environment:
+      - PYTHONPATH=/app
+      - STREAMLIT_SERVER_ENABLECORS=false
+      - OLLAMA
+      - MODEL
+      - INTRO
+      - TITLE
+      - FAKEDNS
+      - DATADIR
+      - IDATADIR
+      - SOURCES
+      - REASONING
+      - FILTER
+    restart: always
