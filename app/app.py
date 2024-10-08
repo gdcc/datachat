@@ -27,7 +27,14 @@ def main():
     def increment():
         st.session_state.count += 1
 
+    # Getting all app parameters
     url = st.query_params.get('url')
+    dataversehost = st.query_params.get('siteUrl')
+    datasetPid = st.query_params.get('datasetPid') 
+    fileId = st.query_params.get('fileId')
+    # Rewriting url if Dataverse host is set
+    if dataversehost:
+        url = dataversehost
 
     # Streamlit App
     st.title(os.environ['TITLE'])
