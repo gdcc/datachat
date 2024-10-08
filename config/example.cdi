@@ -1,0 +1,145 @@
+{
+  "@context": "https://ddi-alliance.bitbucket.io/DDI-CDI/DDI-CDI_v1.0-rc1/encoding/json-ld/ddi-cdi.jsonld",
+  "@graph": [
+    {
+      "@id": "#Frequency",
+      "@type": "InstanceVariable",
+      "name": "Frequency",
+      "hasIntendedDataType": "http://rdf-vocabulary.ddialliance.org/cv/DataType/1.1.2/#String"
+    },
+    {
+      "@id": "#Year",
+      "@type": "InstanceVariable",
+      "name": "Year",
+      "hasIntendedDataType": "http://rdf-vocabulary.ddialliance.org/cv/DataType/1.1.2/#Integer"
+    },
+    {
+      "@id": "#Age_Cohort",
+      "@type": "InstanceVariable",
+      "name": "Age Cohort",
+      "hasIntendedDataType": "http://rdf-vocabulary.ddialliance.org/cv/DataType/1.1.2/#String"
+    },
+    {
+      "@id": "#Sex",
+      "@type": "InstanceVariable",
+      "name": "Sex",
+      "hasIntendedDataType": "http://rdf-vocabulary.ddialliance.org/cv/DataType/1.1.2/#String"
+    },
+    {
+      "@id": "#Status",
+      "@type": "InstanceVariable",
+      "name": "Status",
+      "hasIntendedDataType": "http://rdf-vocabulary.ddialliance.org/cv/DataType/1.1.2/#String"
+    },
+    {
+      "@id": "#Median_Income__USD_",
+      "@type": "InstanceVariable",
+      "name": "Median Income (USD)",
+      "hasIntendedDataType": "http://rdf-vocabulary.ddialliance.org/cv/DataType/1.1.2/#Integer"
+    },
+    {
+      "@id": "#logicalRecord",
+      "@type": "LogicalRecord",
+      "has": [
+        "#Frequency",
+        "#Year",
+        "#Age_Cohort",
+        "#Sex",
+        "#Status",
+        "#Median_Income__USD_"
+      ]
+    },
+    {
+      "@id": "#physicalSegmentLayout",
+      "@type": "PhysicalSegmentLayout",
+      "formats": "#logicalRecord",
+      "isDelimited": "true",
+      "delimiter": ",",
+      "has": [
+        "#valueMapping-Frequency",
+        "#valueMapping-Year",
+        "#valueMapping-Age_Cohort",
+        "#valueMapping-Sex",
+        "#valueMapping-Status",
+        "#valueMapping-Median_Income__USD_"
+      ]
+    },
+    {
+      "@id": "#physicalRecordSegment",
+      "@type": "PhysicalRecordSegment",
+      "mapsTo": "#logicalRecord",
+      "has": [
+        "#physicalSegmentLayout",
+        "#physicalDataset"
+      ]
+    },
+    {
+      "@id": "#valueMapping-Frequency",
+      "@type": "ValueMapping",
+      "has": [
+        "#Frequency"
+      ]
+    },
+    {
+      "@id": "#valueMapping-Year",
+      "@type": "ValueMapping",
+      "has": [
+        "#Year"
+      ]
+    },
+    {
+      "@id": "#valueMapping-Age_Cohort",
+      "@type": "ValueMapping",
+      "has": [
+        "#Age_Cohort"
+      ]
+    },
+    {
+      "@id": "#valueMapping-Sex",
+      "@type": "ValueMapping",
+      "has": [
+        "#Sex"
+      ]
+    },
+    {
+      "@id": "#valueMapping-Status",
+      "@type": "ValueMapping",
+      "has": [
+        "#Status"
+      ]
+    },
+    {
+      "@id": "#valueMapping-Median_Income__USD_",
+      "@type": "ValueMapping",
+      "has": [
+        "#Median_Income__USD_"
+      ]
+    },
+    {
+      "@id": "#physicalDataset",
+      "@type": "PhysicalDataset",
+      "formats": "#dataStore",
+      "physicalFileName": "test.csv",
+      "has": []
+    },
+    {
+      "@id": "#dataStore",
+      "@type": "DataStore",
+      "recordCount": 5,
+      "has": [
+        "#logicalRecord"
+      ]
+    },
+    {
+      "@id": "#dataset",
+      "@type": "DimensionalDataSet",
+      "isStructuredBy": "#datastructure",
+      "has": []
+    },
+    {
+      "@id": "#datastructure",
+      "@type": "DimensionalDataStructure",
+      "has": []
+    }
+  ]
+}
