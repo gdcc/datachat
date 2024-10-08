@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<codeBook xmlns="ddi:codebook:2_5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xsi:schemaLocation="ddi:codebook:2_5 http://www.ddialliance.org/Specification/DDI-Codebook/2.5/XMLSchema/codebook.xsd">
+  <fileDscr ID="test.csv">
+    <dimensns>
+      <caseQnty>5</caseQnty>
+      <varQnty>6</varQnty>
+    </dimensns>
+    <fileTxt>
+      <fileName>test.csv</fileName>
+      <fileType>text/csv</fileType>
+      <dataFingerprint type="dataFile">
+        <digitalFingerprintValue>828e72505b6929b05f7e6b8e5e1998d3eb08c3be5d025da2660797e322099c49</digitalFingerprintValue>
+        <algorithmSpecification>SHA-256</algorithmSpecification>
+      </dataFingerprint>
+    </fileTxt>
+  </fileDscr>
+  <dataDscr source="producer">
+    <var ID="Frequency" name="Frequency" files="test.csv" representationType="text"/>
+    <var ID="Year" name="Year" files="test.csv" representationType="numeric"/>
+    <var ID="Age_Cohort" name="Age Cohort" files="test.csv" representationType="text"/>
+    <var ID="Sex" name="Sex" files="test.csv" representationType="text"/>
+    <var ID="Status" name="Status" files="test.csv" representationType="text"/>
+    <var ID="Median_Income__USD_" name="Median Income (USD)" files="test.csv" representationType="numeric"/>
+  </dataDscr>
+</codeBook>
