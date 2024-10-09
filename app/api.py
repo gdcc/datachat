@@ -8,10 +8,12 @@ import arrow
 import re
 import textwrap
 from datetime import datetime, date, timedelta
+from app.utils import query_ollama, get_doi_from_text
 import pandas as pd
 from io import StringIO
-config = {}
+from pyDataverse.Croissant import Croissant
 import requests
+config = {}
 
 ai = AIMaker(config, LLAMA_URL="10.147.18.193:8093")
 def extract_json_ld(text):
@@ -43,8 +45,17 @@ app = FastAPI()
 def read_root():
     return {"message": "Welcome to the FastAPI app!"}
 
+@app.get("/croissant/")
+def read_item(doi: str):
+    #host = "https://dataverse.nl"
+    #PID = "doi:10.34894/KMRAYH"
+    (host, iddoi) = get_doi_from_text(doi) 
+    croissant = Croissant(doi=iddoi, host=host)
+    return json.dumps(croissant.get_record(), indent=4, default=str)
+    #return JSONResponse(content=croissant.get_record(), media_type="application/ld+json")
+
 # Define a route with a path parameter
-@app.get("/url/")
+@app.get("/ddi/")
 def read_item(url: str = None):
     ai.changefocus("transformation")
     ai.changerole("ddi expert")
