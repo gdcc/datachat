@@ -47,11 +47,10 @@ def read_root():
 
 @app.get("/croissant/")
 def read_item(doi: str):
-    #host = "https://dataverse.nl"
-    #PID = "doi:10.34894/KMRAYH"
     (host, iddoi) = get_doi_from_text(doi) 
     croissant = Croissant(doi=iddoi, host=host)
-    return json.dumps(croissant.get_record(), indent=4, default=str)
+    return croissant.get_record()
+    #return json.dumps(croissant.get_record(), indent=4, default=str)
     #return JSONResponse(content=croissant.get_record(), media_type="application/ld+json")
 
 # Define a route with a path parameter
