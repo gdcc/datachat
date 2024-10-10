@@ -12,7 +12,7 @@ from app.utils import query_ollama, get_doi_from_text
 import pandas as pd
 from io import StringIO
 from pyDataverse.Croissant import Croissant
-from rdflib import Graph, URIRef
+from rdflib import Graph, URIRef, Literal, BNode
 import requests
 config = {}
 
@@ -59,10 +59,15 @@ def read_item(doi: str, format = None):
         new_uri = URIRef(doi) #"https://app.com/f444811")
 
         # Iterate over triples and replace old URI with the new URI
-        for s, p, o in g.triples((old_uri, None, None)):
-            g.remove((s, p, o))           # Remove the triple with old URI
-            g.add((new_uri, p, o))        # Add the triple with the new URI
+        for s, p, o in g: #.triples: #((old_uri, None, None)):
+            if isinstance(s, BNode):
+                g.remove((s, p, o))           # Remove the triple with old URI
+                g.add((new_uri, p, o))        # Add the triple with the new URI
+            if isinstance(s, URIRef):
+                g.remove((s, p, o))           # Remove the triple with old URI
+                g.add((new_uri, p, o))        # Add the triple with the new URI
         #return turtle_data
+        turtle_data = g.serialize(format="turtle")
         return Response(content=turtle_data, media_type="text/turtle")
     else:
         return croissant.get_record()
