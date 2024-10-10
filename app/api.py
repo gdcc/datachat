@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 import json
 from elasticsearch import Elasticsearch
 from app.AI import AIMaker 
@@ -12,6 +12,7 @@ from app.utils import query_ollama, get_doi_from_text
 import pandas as pd
 from io import StringIO
 from pyDataverse.Croissant import Croissant
+from rdflib import Graph, URIRef
 import requests
 config = {}
 
@@ -46,10 +47,26 @@ def read_root():
     return {"message": "Welcome to the FastAPI app!"}
 
 @app.get("/croissant/")
-def read_item(doi: str):
+def read_item(doi: str, format = None):
     (host, iddoi) = get_doi_from_text(doi) 
+    g = Graph()
     croissant = Croissant(doi=iddoi, host=host)
-    return croissant.get_record()
+    if format == 'turtle':
+        #return croissant.get_record()
+        g.parse(data=croissant.get_record(), format='json-ld')
+        turtle_data = g.serialize(format="turtle") #.decode("utf-8")
+        old_uri = URIRef("file:///app/f444811")
+        new_uri = URIRef(doi) #"https://app.com/f444811")
+
+        # Iterate over triples and replace old URI with the new URI
+        for s, p, o in g.triples((old_uri, None, None)):
+            g.remove((s, p, o))           # Remove the triple with old URI
+            g.add((new_uri, p, o))        # Add the triple with the new URI
+        #return turtle_data
+        return Response(content=turtle_data, media_type="text/turtle")
+    else:
+        return croissant.get_record()
+ 
     #return json.dumps(croissant.get_record(), indent=4, default=str)
     #return JSONResponse(content=croissant.get_record(), media_type="application/ld+json")
 
