@@ -6,6 +6,7 @@ from pyDataverse.Croissant import Croissant
 import subprocess
 
 def data_cache(doi):
+    metadata = {}
     if 'DATAVERSE' in os.environ:
         ddi, schema, ore = False, False, False
         cachepath = "%s/%s" % (os.environ['DATAVERSE'], doi.replace('/dans','_dans'))
@@ -18,18 +19,26 @@ def data_cache(doi):
 
         try:
             with open("%s.schema" % cachepath, "r") as file:
-                schema = json.load(file)
+                #schema = json.load(file)
+                schema = file.read()
         except:
             schema = False
 
         try:
             with open("%s.oai" % cachepath, "r") as file:
-                oai = json.load(file)
+                #ore = json.load(file)
+                ore = file.read()
         except:
-            oai = False
+            ore = False
         #return (False, "%s/%s" % (os.environ['DATAVERSE'], doi.replace('/dans','_dans')), False)
-        return (ddi, schema, oai)
-    return (False, False, False)
+        if ddi:
+            metadata['ddi'] = ddi
+        if schema:
+            metadata['schema'] = schema
+        if ore:
+            metadata['ore'] = ore
+        return metadata
+    return metadata
 
 def doi_check(url):
     url_match = False
