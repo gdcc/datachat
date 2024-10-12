@@ -49,14 +49,16 @@ def read_root():
 @app.get("/cache/")
 def cache(doi: str, format = None):
     (host, iddoi) = get_doi_from_text(doi)
-    (schema, ddi, ore) = data_cache(iddoi)
-    return ddi 
+    cachedata = data_cache(iddoi)
+    return cachedata
 
 @app.get("/croissant/")
 def read_item(doi: str, format = None):
     (host, iddoi) = get_doi_from_text(doi) 
+    cachedata = data_cache(iddoi)
+    print(cachedata)
     g = Graph()
-    croissant = Croissant(doi=iddoi, host=host)
+    croissant = Croissant(doi=iddoi, host=host, metadata=cachedata)
     if format == 'turtle':
         #return croissant.get_record()
         g.parse(data=croissant.get_record(), format='json-ld')
