@@ -3,8 +3,59 @@ import re
 import os
 import json
 from pyDataverse.Croissant import Croissant
+import subprocess
+
+def data_cache(doi):
+    if 'DATAVERSE' in os.environ:
+        ddi, schema, ore = False, False, False
+        cachepath = "%s/%s" % (os.environ['DATAVERSE'], doi.replace('/dans','_dans'))
+        # ddi reader
+        try:
+            with open("%s.ddi" % cachepath, "r") as file:
+                ddi = file.read()
+        except:
+            ddi = False
+
+        try:
+            with open("%s.schema" % cachepath, "r") as file:
+                schema = json.load(file)
+        except:
+            schema = False
+
+        try:
+            with open("%s.oai" % cachepath, "r") as file:
+                oai = json.load(file)
+        except:
+            oai = False
+        #return (False, "%s/%s" % (os.environ['DATAVERSE'], doi.replace('/dans','_dans')), False)
+        return (ddi, schema, oai)
+    return (False, False, False)
+
+def doi_check(url):
+    url_match = False
+    if 'doi.org' in url:
+        url_match = re.search(r'target="_blank">(https://doi\.org/[^\s<]+)</a>', url)
+
+    if url_match:
+        extracted_url = url_match.group(1)
+        url = extracted_url
+        xml_string = requests.get(url).text
+        curl_command = f'curl -s {url}'
+        curlresult = subprocess.run(curl_command, shell=True, capture_output=True, text=True)
+        xml_string = curlresult.stdout
+        url_match = re.search(r'content="(https://[^\s"]+)"', xml_string)
+
+        if url_match:
+            extracted_url = url_match.group(1)
+            return extracted_url
+        else:
+            url_match = re.search(r'<body><a href="(http.+?)\"', xml_string)
+            extracted_url = url_match.group(1)
+            return extracted_url
+    return url
 
 def get_doi_from_text(text, selectedDOI=None):
+    #text = doi_check(text)
     # Regular expression pattern to capture DOI
     doi_pattern = r'^(\S+)\/dataset\S+(doi\:\S+)'
 
@@ -16,11 +67,11 @@ def get_doi_from_text(text, selectedDOI=None):
         return (match.group(1), match.group(2))
         #return doi
     else:
-        doi_pattern = r'https\:\/\/doi.org\/(\S+)'
+        doi_pattern = r'^(\S+?)\/citation\S+(doi\S+)'
         match = re.search(doi_pattern, text)
         if match:
             doi = "doi:%s" % match.group(1)
-            return doi.replace('"','')
+            return (match.group(1), match.group(2))
         print("DOI not found.")
         # check for handle
         #hdl:10622/SOS0KC#
