@@ -9,7 +9,7 @@ def data_cache(doi):
     metadata = {}
     if 'DATAVERSE' in os.environ:
         ddi, schema, ore = False, False, False
-        cachepath = "%s/%s" % (os.environ['DATAVERSE'], doi.replace('/dans','_dans'))
+        cachepath = "%s/%s" % ('/cache', doi.replace('/dans','_dans'))
         # ddi reader
         try:
             with open("%s.ddi" % cachepath, "r") as file:

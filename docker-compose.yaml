@@ -48,6 +48,7 @@ services:
       - ${DATADIR}:/data
       - ${CACHEDIR}:/root/.cache
       - ${INSTALLATION}:/app/installation
+      - ${DATAVERSE}:/cache
       - ./tests:/app/tests
       - ./app/api.py:/app/main.py
       - ./app/utils.py:/app/utils.py
