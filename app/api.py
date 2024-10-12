@@ -8,7 +8,7 @@ import arrow
 import re
 import textwrap
 from datetime import datetime, date, timedelta
-from app.utils import query_ollama, get_doi_from_text
+from app.utils import query_ollama, get_doi_from_text, data_cache
 import pandas as pd
 from io import StringIO
 from pyDataverse.Croissant import Croissant
@@ -46,6 +46,12 @@ app = FastAPI()
 def read_root():
     return {"message": "Welcome to the FastAPI app!"}
 
+@app.get("/cache/")
+def cache(doi: str, format = None):
+    (host, iddoi) = get_doi_from_text(doi)
+    (schema, ddi, ore) = data_cache(iddoi)
+    return ddi 
+
 @app.get("/croissant/")
 def read_item(doi: str, format = None):
     (host, iddoi) = get_doi_from_text(doi) 
@@ -65,7 +71,9 @@ def read_item(doi: str, format = None):
                 g.add((new_uri, p, o))        # Add the triple with the new URI
             if isinstance(s, URIRef):
                 g.remove((s, p, o))           # Remove the triple with old URI
-                g.add((new_uri, p, o))        # Add the triple with the new URI
+                fileURL = "https://dataverse.nl/api/access/datafile/444812"
+                file_uri = URIRef(fileURL)
+                g.add((file_uri, p, o))        # Add the triple with the new URI
         #return turtle_data
         turtle_data = g.serialize(format="turtle")
         return Response(content=turtle_data, media_type="text/turtle")
