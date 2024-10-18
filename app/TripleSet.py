@@ -21,6 +21,17 @@ class TripleSet():
     "crosswalks": "authorName, authorAffiliation",
     "WikiData_URI": "http://www.wikidata.org/entity/Q5"
   },
+  "PER": {
+    "description": "People, including fictional characters",
+    "relationship": "PERSON",
+    "crosswalks": "authorName, authorAffiliation",
+    "WikiData_URI": "http://www.wikidata.org/entity/Q5"
+  },
+  "MISC" : {
+    "description": "Quality of items having differing or formally unclassified traits",
+    "relationship": "MISC",
+    "WikiData_URI": "https://www.wikidata.org/wiki/Q2302426"    
+  },
   "NORP": {
     "description": "Nationalities or religious or political groups",
     "relationship": "NORP",
@@ -224,11 +235,15 @@ class TripleSet():
     
     def ingraph(self):
         for x in self.nlp:
-            entity_label = x['entity']
-            entity_uri = URIRef(self.get_wikiuri(x['label']))
-            entity_description = self.get_wikiuri(x['label'], 'description')
-            if self.DEBUG:
-                print("%s;%s;%s" % (x['entity'], triples.get_wikiuri(x['label']), triples.get_wikiuri(x['label'], 'description')))
-            self.g.add((Literal(entity_label), RDF.type, entity_uri))
-            self.g.add((Literal(entity_label), self.ns1.description, Literal(entity_description)))
+            try:
+                entity_label = x['entity']
+                entity_uri = URIRef(self.get_wikiuri(x['label']))
+                entity_description = self.get_wikiuri(x['label'], 'description')
+                if self.DEBUG:
+                    print("%s;%s;%s" % (x['entity'], triples.get_wikiuri(x['label']), triples.get_wikiuri(x['label'], 'description')))
+                self.g.add((Literal(entity_label), RDF.type, entity_uri))
+                self.g.add((Literal(entity_label), self.ns1.description, Literal(entity_description)))
+            except:
+                continue
+
 
