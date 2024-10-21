@@ -273,4 +273,84 @@ class TripleSet():
             except:
                 continue
 
+    def schema_creators(self, authors, affiliations):
+        creators = []
+        for nameID in range(0, len(authors)):
+            authorinfo = { "@type": "sc:Organisation", "name": authors[nameID]}
+            try:
+                if affiliations[nameID]:
+                    authorinfo['affiliation'] = affiliations[nameID]
+            except: 
+                continue 
+            creators.append(authorinfo)
+        return creators
+    
+    def clean_name_string(self, name):
+        name = name.replace('-','_')
+        return re.sub("[^a-zA-Z0-9\\-_.]", "_", name)
+    
+    def get_fields(self, g, field_list, SEARCH='PREDICATE', REPEATED=True):
+        if not isinstance(field_list, list):
+            field_list = [ field_list ]
+        
+        for fieldname in field_list:
+            #print("Lookup in graph: %s / %s" % (fieldname, field_list))
+            search_property = fieldname
+            if 'http' in fieldname:
+                search_property = URIRef(fieldname)
+            fielddata = []
+            data = []
+            #if self.DEBUG:
+            #    print(SEARCH)
+            if SEARCH == 'PREDICATE':
+                data = g.triples((None, search_property, None))
+            if SEARCH == 'SUBJECT':
+                data = g.triples((search_property, None, None))
+            if SEARCH == 'OBJECT':
+                data = g.triples((None, None, search_property))
+                    
+            for subject, predicate, obj in data:
+                #print(f"*** Subject: {subject}, Predicate: {predicate}, Object: {obj}")
+                try:
+                    #fielddata.append(f"{obj}")
+                    #return fielddata
+                    fielddata.append(obj.value)
+                except:
+                    fielddata.append(obj.toPython())
+            if REPEATED:
+                if fielddata:
+                    try:
+                        return fielddata[0]
+                    except:
+                        print(f"Error accessing the first element: {e}")
+                        #return None  # Continue with warning
+                #else:
+                    #return ''
+            else:
+                if fielddata:
+                    return fielddata
+        return ''
+
+    def incroissant(self, g):
+        self.localmetadata = mlc.Metadata(
+                    cite_as=self.get_fields(g, self.crosswalks["name"]),
+                    name=self.clean_name_string(self.get_fields(g, self.crosswalks["name"])),
+                    description=self.get_fields(g, self.crosswalks["description"]),
+                    creators=self.schema_creators(self.get_fields(g, self.crosswalks["author"], REPEATED=False), self.get_fields(g, self.crosswalks["authoraffiliation"], REPEATED=False)),
+                    url=self.get_fields(g, self.crosswalks["url"]),
+                    #date_created=self.get_fields(g, self.crosswalks["date_created"], REPEATED=False),
+                    #date_published=self.get_fields(g, self.crosswalks["date_published"], REPEATED=False),
+                    #date_modified=self.get_fields(g, self.crosswalks["date_modified"], REPEATED=False),
+                    keywords=self.get_fields(g, self.crosswalks["keywords"], REPEATED=False),
+                    publisher=self.get_fields(g, self.crosswalks["publisher"], REPEATED=False),
+                    #citation=get_fields(g, crosswalks["citation"]),
+                    license=self.get_fields(g, self.crosswalks["license"], REPEATED=False),
+                    sd_licence=self.get_fields(g, self.crosswalks["license"], REPEATED=False),
+                    version=self.get_fields(g, self.crosswalks["version"], REPEATED=True),
+                    #distribution=self.distributions,
+                    #record_sets=self.record_sets,
+                    in_language=self.get_fields(g, self.crosswalks["in_language"], REPEATED=False),
+                )
+        metadatajson = self.localmetadata.to_json()
+        return metadatajson #self.localmetadata
 
