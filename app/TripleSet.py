@@ -233,6 +233,33 @@ class TripleSet():
         #return json.loads(json_string)
         return json_string
     
+    def singlegraph(self, data):
+        # Create a new RDF graph
+        g = Graph()
+
+        # Add the data to the graph as triples
+        subject = URIRef(data["_source"]["url"])  # Use the URL as the subject for the triples
+
+        # Add properties to the graph
+        g.add((subject, DC.identifier, Literal(data["_source"]["urlid"])))
+        g.add((subject, DC.title, Literal(data["_source"]["title"])))
+        g.add((subject, DC.date, Literal(data["_source"]["pubdate"])))
+        g.add((subject, DC.source, Literal(data["_source"]["url"])))
+        g.add((subject, DC.language, Literal(data["_source"]["language"])))
+        g.add((subject, DC.description, Literal(data["_source"]["summary"])))
+        if 'country' in data["_source"]:
+            g.add((subject, DC.coverage, Literal(data["_source"]["country"])))
+
+        # Add entities (as an example)
+        entities = data["_source"]["entities"].split(", ")
+        for entity in entities:
+            g.add((subject, DC.subject, Literal(entity)))
+
+        # Serialize the graph in a readable format
+        if self.debug:
+            print(g.serialize(format="turtle"))#.decode("utf-8"))
+        return g
+
     def ingraph(self):
         for x in self.nlp:
             try:
