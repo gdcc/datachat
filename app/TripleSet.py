@@ -1,9 +1,17 @@
 from collections import Counter
-from rdflib import Graph, URIRef, Literal, BNode, Namespace, RDF
+from rdflib import Graph, URIRef, Literal, BNode, Namespace, RDF, DC
+from rdflib.namespace import RDF, FOAF
+import mlcroissant as mlc
+import json
+import re
 
 class TripleSet():
     def __init__(self, dataitem, ingest=False, debug=False):
+        self.crosswalks = {'name': 'http://purl.org/dc/elements/1.1/title', 'description': 'http://purl.org/dc/elements/1.1/description', 'in_language': 'http://purl.org/dc/elements/1.1/language', "author": "http://purl.org/dc/elements/1.1/creator",
+                           "authoraffiliation": "http://purl.org/dc/elements/1.1/creator", "url": "http://purl.org/dc/elements/1.1/source", "keywords": "http://purl.org/dc/elements/1.1/subject",  "publisher": "http://purl.org/dc/elements/1.1/creator",
+                          "license": "http://purl.org/dc/terms/license", "version": "http://purl.org/dc/terms/isVersionOf"}
         self.alllabels = []
+        self.debug = debug
         self.nlp = []
         self.string_data = None
         self.url = None
@@ -125,7 +133,7 @@ class TripleSet():
 }
 
         if 'nlp' in dataitem['_source']:
-            self.string_data = item['_source']['nlp'].replace('’',' ')
+            self.string_data = dataitem['_source']['nlp'].replace('’',' ')
             self.string_data = self.string_data.replace('"','')
             self.json_string = self.convert_to_json_string_part(self.string_data)
         if 'url' in dataitem['_source']:
