@@ -13,8 +13,10 @@ import pandas as pd
 from io import StringIO
 from pyDataverse.Croissant import Croissant
 from rdflib import Graph, URIRef, Literal, BNode
+from app.TripleSet import TripleSet
+from config import config
 import requests
-config = {}
+#config = {}
 
 ai = AIMaker(config, LLAMA_URL="10.147.18.193:8093")
 def extract_json_ld(text):
@@ -51,6 +53,38 @@ def cache(doi: str, format = None):
     (host, iddoi) = get_doi_from_text(doi)
     cachedata = data_cache(iddoi)
     return cachedata
+
+@app.get("/resources/")
+def convert_resources(query, format = None):
+    brand = "title:%s AND language:fr" % query
+    brand = "title:%s" % query
+    thisdate = "2024-10-18"
+    allnews = []
+    for thisdate in ai.weekdata(1):
+        #q = "%s AND smitype:4 AND fixdate:\"%s\"" % (brand, thisdate)
+        q = "%s" % brand
+        news = ai.get_message_id(search=q)
+        allnews+=news
+    #return len(allnews)
+
+    #uid =2 
+    #item = allnews[uid]
+    #print(item)
+    metadata = []
+    for uid in range(0, len(allnews)):
+        item = allnews[uid]
+        print(item)
+        try:
+            triples = TripleSet(item) #string_data)
+            singleG = triples.singlegraph(item)
+            cr = triples.incroissant(singleG)
+            metadata.append(cr)
+        except:
+            skip = True
+        #print(singleG.serialize(format="turtle"))
+        #for s, p, o in singleG:
+        #    print(f"{s}\t{p}\t{o}\n")
+    return metadata
 
 @app.get("/croissant/")
 def read_item(doi: str, format = None):
