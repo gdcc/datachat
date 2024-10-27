@@ -1,5 +1,17 @@
 import re
 
+def summaryprompts(description, prompt):
+    intro = True
+    if intro:
+        llmprompt_cr = (
+f"Below are list of records: {description}\n\n"
+#"Please provide a summary of these dataset records highlighting key points, especially names, descriptions, and any critical keywords."
+#"Show key points from \"description\" for all events in English and provide reference in \"url\" . \n\n" 
+"Please provide a brief description in English with key points related to coffee and reflecting changes in % or prices, location/country if available. Give URL reference for every point."
+
+    )
+    return llmprompt_cr
+
 def llmprompts(description, prompt):
     intro = False
     words = ['intro', 'overview', 'describe']

@@ -12,8 +12,8 @@ import requests
 import json
 
 # Use absolute imports
-from app.utils import query_ollama, get_doi_from_text, get_json, form_prompt, sources
-from app.prompts import llmprompts
+from app.utils import query_ollama, get_doi_from_text, get_json, form_prompt, news_prompt, sources, json_ld_to_text
+from app.prompts import llmprompts, summaryprompts
 from app.Paracrawl import Paracrawl
 from app.GraphQuery import GraphQuery
 
@@ -32,6 +32,7 @@ def main():
     dataversehost = st.query_params.get('siteUrl')
     datasetPid = st.query_params.get('datasetPid') 
     fileId = st.query_params.get('fileId')
+    query = st.query_params.get('q')
     # Rewriting url if Dataverse host is set
     if dataversehost:
         url = dataversehost
@@ -43,11 +44,29 @@ def main():
     description = ''
     # Add a unique key to the text_input widget
     prompt = st.text_input(os.environ['INTRO'], "")
+    customprompt = ''
+    if prompt:
+        customprompt = prompt
 
     def get_questions(description, prompt):
         return llmprompts(description, prompt)
+    def get_answers(description, prompt):
+        return summaryprompts(description, prompt)
 
     # Button to trigger API call
+    if st.button("Get Answer", key="get_answer_button") or query:
+        if customprompt:
+            query = customprompt
+        # https://radio.now.museum/docs#/default/convert_resources_resources__get
+        data = requests.get("%s/resources/?query=%s" % (os.environ['WIZARDURL'], query))
+#        st.write(len(data.json())) 
+        records = json_ld_to_text(data.json()[:10])
+        llmprompt = get_answers(news_prompt(records), prompt)
+#        llmprompt = get_questions(news_prompt(data.json()[:3]), prompt)
+        print(llmprompt)
+        response = query_ollama(llmprompt)
+        st.write(response)
+        
     if st.button("Get Response", key="get_response_button") or url:
         if not st.session_state.doi:
             if url and 'http' in url:
@@ -57,6 +76,7 @@ def main():
         else:
             if 'doi' not in prompt:
                 prompt += f" {st.session_state.doi}"
+
         if prompt:
             if url:
                 (host, doi) = get_doi_from_text(url) #url.replace('=doi',' doi'))
@@ -66,6 +86,7 @@ def main():
             if host:
                 os.environ['hostname'] = host
 
+            st.write(doi)
             if doi:
                 st.session_state.doi = doi
                 st.markdown(f"Working with dataset <a href='{url}'>{doi}</a>.", unsafe_allow_html=True)
@@ -82,6 +103,7 @@ def main():
                         if not ready:
                             p = Paracrawl(prompt, sources())
                             response = f"<p>Query: <i>{p.smartquery['searchquery']}</i></p>"
+#                            st.write(p.content)
                             if p.results:
                                 ready = True
                                 for item in p.results:

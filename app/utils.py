@@ -136,6 +136,26 @@ The "creator" field describes a person, where:
 
     return description_cr
 
+def news_prompt(json_ld_data):
+#    json_ld_data = get_json(doi)
+    #description_cr = f"""Consider the following list of JSON-LD records as events registration, following one by one. Every record described by format:
+    return json_ld_data
+    description_cr = f"""Summarize the following entries separately from JSON-LD records: 
+{json.dumps(json_ld_data, indent=2)}
+        
+The "name" field describes a title.
+The "description" field describes a description.
+The "keywords" field describes a list of keywords.
+The "datePublished" field describes date when dataset was created"
+The "creator" field describes a person, where:
+- "givenName" is the creator's first name.
+- "familyName" is the creator's last name.
+- "name" provides the full name in "familyName, givenName" format.
+
+"""     
+        
+    return description_cr
+
 def fakedns(file_path):
     rules = {}
     try:
@@ -246,3 +266,35 @@ def linked_data_query_constructor(textinput):
     else:
         print("No JSON found in the text.")
     return
+
+def json_ld_to_text(records):
+    # Initialize an empty list to store the text for each record
+    texts = []
+
+    # Loop through each record in the JSON-LD list
+    for idx, record in enumerate(records):
+        # Extract relevant fields from the JSON-LD structure
+        name = record.get('name', 'No title available')
+        description = record.get('description', 'No description available')
+        language = record.get('inLanguage', 'Unknown language')
+        keywords = ', '.join(record.get('keywords', [])) or 'No keywords available'
+        citation = record.get('citeAs', 'No citation available')
+        url = record.get('url', 'No URL available')
+
+        # Construct the text representation for this record
+        record_text = (
+            f"{idx + 1}.\n"
+            f"Language: {language}\n"
+            f"Description: {description}\n"
+            f"Keywords: {keywords}\n"
+            f"Title: {citation}\n"
+            f"URL: {url}\n"
+        )
+
+        # Add the constructed text to the list
+        texts.append(record_text)
+
+    # Join all records with a line break in between
+    combined_text = '\n'.join(texts)
+
+    return combined_text
